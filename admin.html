@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Settings</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; color: #e0e0e0; display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: #111118; border-right: 1px solid #222; padding: 20px 0; position: fixed; left: 0; top: 0; height: 100vh; }
+        .sidebar-logo { padding: 0 20px 20px; font-size: 20px; font-weight: 700; color: #ff4757; border-bottom: 1px solid #222; margin-bottom: 15px; }
+        .sidebar a { display: block; padding: 12px 20px; color: #888; text-decoration: none; font-size: 14px; }
+        .sidebar a:hover, .sidebar a.active { color: #ff4757; background: rgba(255,71,87,0.1); border-right: 3px solid #ff4757; }
+        .main { margin-left: 220px; flex: 1; padding: 30px; }
+        h1 { color: #ffd700; margin-bottom: 25px; font-size: 24px; }
+        .card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 25px; margin-bottom: 25px; }
+        .card h3 { color: #ffd700; margin-bottom: 18px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: #888; font-size: 13px; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; background: #0a0a0f; border: 2px solid #222; border-radius: 8px; color: #fff; font-size: 14px; }
+        .form-group textarea { min-height: 100px; font-family: 'Courier New', monospace; color: #2ed573; }
+        .btn { padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-primary { background: #ff4757; color: #fff; width: 100%; }
+        .btn-secondary { background: transparent; color: #ff4757; border: 2px solid #ff4757; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #0a0a0f; color: #888; padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; font-size: 13px; }
+        pre { background: #0a0a0f; padding: 15px; border-radius: 8px; color: #2ed573; font-size: 12px; margin-top: 15px; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">💀 DeathMarket</div>
+        <a href="/dashboard">📊 Dashboard</a>
+        <a href="/trade">📈 Trade</a>
+        <a href="/wallet">💰 Wallet</a>
+        <a href="/market">📉 Market</a>
+        <a href="/profile">👤 Profile</a>
+        <a href="/admin" class="active">⚙️ Settings</a>
+    </div>
+    <div class="main">
+        <h1>⚙️ Settings & Admin</h1>
+        <div class="card">
+            <h3>All Users</h3>
+            <button onclick="loadUsers()" class="btn btn-secondary">Load Users</button>
+            <table style="margin-top:15px;"><thead><tr><th>ID</th><th>Username</th><th>Email</th><th>BTC</th><th>ETH</th><th>USDT</th><th>Role</th></tr></thead><tbody id="usersBody"></tbody></table>
+        </div>
+        <div class="card">
+            <h3>SQL Query</h3>
+            <div class="form-group"><label>Query</label><textarea id="adminSql">SELECT * FROM users</textarea></div>
+            <button onclick="execQuery()" class="btn btn-primary">Execute</button>
+            <pre id="adminOutput"></pre>
+        </div>
+        <div class="card">
+            <h3>View User</h3>
+            <div class="form-group"><label>User ID</label><input type="number" id="viewUserId" placeholder="1"></div>
+            <button onclick="viewUser()" class="btn btn-secondary">View</button>
+            <pre id="userView"></pre>
+        </div>
+        <div class="card">
+            <h3>API Keys</h3>
+            <button onclick="loadApiKeys()" class="btn btn-secondary">Load API Keys</button>
+            <pre id="apiKeys" style="margin-top:15px;"></pre>
+        </div>
+        <div class="card">
+            <h3>Switch Account</h3>
+            <div class="form-group"><label>User ID</label><input type="number" id="sessionUserId" placeholder="1"></div>
+            <button onclick="hijackSession()" class="btn btn-primary">Switch</button>
+        </div>
+    </div>
+    <script>
+        async function loadUsers() { const r=await fetch('/api/export'); const u=await r.json(); document.getElementById('usersBody').innerHTML=u.map(u=>`<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${parseFloat(u.balance_btc).toFixed(4)}</td><td>${parseFloat(u.balance_eth).toFixed(4)}</td><td>$${parseFloat(u.balance_usdt).toLocaleString()}</td><td>${u.role}</td></tr>`).join(''); }
+        async function execQuery() { const r=await fetch('/api/query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sql:document.getElementById('adminSql').value})}); document.getElementById('adminOutput').textContent=JSON.stringify(await r.json(),null,2); }
+        async function viewUser() { const r=await fetch('/api/user/'+document.getElementById('viewUserId').value); document.getElementById('userView').textContent=JSON.stringify(await r.json(),null,2); }
+        async function loadApiKeys() { const r=await fetch('/api/api-keys'); document.getElementById('apiKeys').textContent=JSON.stringify(await r.json(),null,2); }
+        async function hijackSession() { await fetch('/api/set-session?id='+document.getElementById('sessionUserId').value); location.reload(); }
+    </script>
+</body>
+</html>

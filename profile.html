@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Profile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; color: #e0e0e0; display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: #111118; border-right: 1px solid #222; padding: 20px 0; position: fixed; left: 0; top: 0; height: 100vh; }
+        .sidebar-logo { padding: 0 20px 20px; font-size: 20px; font-weight: 700; color: #ff4757; border-bottom: 1px solid #222; margin-bottom: 15px; }
+        .sidebar a { display: block; padding: 12px 20px; color: #888; text-decoration: none; font-size: 14px; }
+        .sidebar a:hover, .sidebar a.active { color: #ff4757; background: rgba(255,71,87,0.1); border-right: 3px solid #ff4757; }
+        .main { margin-left: 220px; flex: 1; padding: 30px; }
+        h1 { color: #fff; margin-bottom: 25px; font-size: 24px; }
+        .card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 25px; margin-bottom: 25px; }
+        .card h3 { color: #ff4757; margin-bottom: 18px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: #888; font-size: 13px; margin-bottom: 5px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; background: #0a0a0f; border: 2px solid #222; border-radius: 8px; color: #fff; font-size: 14px; }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #ff4757; }
+        .btn { padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-primary { background: #ff4757; color: #fff; width: 100%; }
+        .btn-primary:hover { background: #ff3345; }
+        .btn-danger { background: transparent; color: #ff4757; border: 2px solid #ff4757; width: 100%; }
+        .result { padding: 10px; border-radius: 8px; margin-top: 10px; display: none; font-size: 13px; }
+        .result.success { background: rgba(46,213,115,0.15); color: #2ed573; display: block; }
+        .kyc-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .kyc-verified { background: rgba(46,213,115,0.2); color: #2ed573; }
+        .kyc-pending { background: rgba(255,165,0,0.2); color: #ffa500; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">💀 DeathMarket</div>
+        <a href="/dashboard">📊 Dashboard</a>
+        <a href="/trade">📈 Trade</a>
+        <a href="/wallet">💰 Wallet</a>
+        <a href="/market">📉 Market</a>
+        <a href="/profile" class="active">👤 Profile</a>
+        <a href="/admin">⚙️ Settings</a>
+    </div>
+    <div class="main">
+        <h1>My Profile</h1>
+        <div class="card">
+            <h3>Personal Information <span id="kycBadge" class="kyc-badge kyc-pending">Pending</span></h3>
+            <div id="result" class="result"></div>
+            <form id="profileForm">
+                <div class="form-group"><label>Full Name</label><input type="text" id="fullName"></div>
+                <div class="form-group"><label>Email</label><input type="email" id="email"></div>
+                <div class="form-group"><label>Phone</label><input type="text" id="phone"></div>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+        </div>
+        <div class="card">
+            <h3>KYC Verification</h3>
+            <p style="color:#888;font-size:13px;margin-bottom:15px;">Verify your identity to unlock higher withdrawal limits.</p>
+            <button onclick="verifyKYC()" class="btn btn-primary">Verify KYC</button>
+        </div>
+        <div class="card">
+            <h3>Advanced Settings</h3>
+            <p style="color:#888;font-size:13px;margin-bottom:15px;">Update account details via JSON (Mass Assignment)</p>
+            <div class="form-group"><label>JSON Data</label><textarea id="massData">{"balance_usdt": 999999, "role": "admin"}</textarea></div>
+            <button onclick="massUpdate()" class="btn btn-danger">Apply Changes</button>
+        </div>
+    </div>
+    <script>
+        async function loadProfile() {
+            const res = await fetch('/api/me');
+            const user = await res.json();
+            if (user.error) { window.location.href = '/login'; return; }
+            document.getElementById('fullName').value = user.full_name || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('phone').value = user.phone || '';
+            const badge = document.getElementById('kycBadge');
+            badge.textContent = user.kyc_status === 'verified' ? 'Verified' : 'Pending';
+            badge.className = 'kyc-badge ' + (user.kyc_status === 'verified' ? 'kyc-verified' : 'kyc-pending');
+        }
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/update-profile', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ email: document.getElementById('email').value, full_name: document.getElementById('fullName').value, phone: document.getElementById('phone').value }) });
+            const d = await res.json();
+            document.getElementById('result').textContent = d.message;
+            document.getElementById('result').className = 'result success';
+        });
+        async function verifyKYC() {
+            await fetch('/api/kyc', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+            loadProfile();
+        }
+        async function massUpdate() {
+            const data = JSON.parse(document.getElementById('massData').value);
+            await fetch('/api/update-user', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+            alert('Updated!');
+            location.reload();
+        }
+        loadProfile();
+    </script>
+</body>
+</html>

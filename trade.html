@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Trade</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; color: #e0e0e0; display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: #111118; border-right: 1px solid #222; padding: 20px 0; position: fixed; left: 0; top: 0; height: 100vh; }
+        .sidebar-logo { padding: 0 20px 20px; font-size: 20px; font-weight: 700; color: #ff4757; border-bottom: 1px solid #222; margin-bottom: 15px; }
+        .sidebar a { display: block; padding: 12px 20px; color: #888; text-decoration: none; font-size: 14px; }
+        .sidebar a:hover, .sidebar a.active { color: #ff4757; background: rgba(255,71,87,0.1); border-right: 3px solid #ff4757; }
+        .main { margin-left: 220px; flex: 1; padding: 30px; }
+        h1 { color: #fff; margin-bottom: 25px; font-size: 24px; }
+        .trade-grid { display: grid; grid-template-columns: 1fr 380px; gap: 25px; }
+        .chart-area { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 20px; min-height: 400px; display: flex; align-items: center; justify-content: center; color: #444; font-size: 18px; }
+        .trade-panel { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 25px; }
+        .trade-panel h3 { color: #ff4757; margin-bottom: 20px; font-size: 16px; }
+        .pair-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        .pair-btn { padding: 8px 16px; background: #0a0a0f; border: 1px solid #222; border-radius: 6px; color: #888; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .pair-btn.active { border-color: #ff4757; color: #ff4757; background: rgba(255,71,87,0.1); }
+        .trade-tabs { display: flex; margin-bottom: 20px; }
+        .trade-tab { flex: 1; padding: 10px; text-align: center; background: #0a0a0f; border: none; color: #888; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .trade-tab.active { background: #2ed573; color: #000; }
+        .trade-tab.sell.active { background: #ff4757; color: #fff; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: flex; justify-content: space-between; color: #888; font-size: 12px; margin-bottom: 5px; }
+        .form-group label span { color: #ff4757; }
+        .form-group input { width: 100%; padding: 12px; background: #0a0a0f; border: 2px solid #222; border-radius: 8px; color: #fff; font-size: 15px; }
+        .form-group input:focus { outline: none; border-color: #ff4757; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+        .info-row { display: flex; justify-content: space-between; padding: 6px 0; color: #888; font-size: 12px; }
+        .btn-trade { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 15px; }
+        .btn-buy { background: #2ed573; color: #000; }
+        .btn-sell { background: #ff4757; color: #fff; }
+        .orderbook { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-top: 25px; }
+        .orderbook h3 { color: #ff4757; margin-bottom: 15px; }
+        .ob-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+        .ob-row .ask { color: #ff4757; }
+        .ob-row .bid { color: #2ed573; }
+        .result { padding: 10px; border-radius: 8px; margin-top: 10px; display: none; font-size: 13px; }
+        .result.success { background: rgba(46,213,115,0.15); color: #2ed573; display: block; }
+        .result.error { background: rgba(255,71,87,0.15); color: #ff4757; display: block; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">💀 DeathMarket</div>
+        <a href="/dashboard">📊 Dashboard</a>
+        <a href="/trade" class="active">📈 Trade</a>
+        <a href="/wallet">💰 Wallet</a>
+        <a href="/market">📉 Market</a>
+        <a href="/profile">👤 Profile</a>
+        <a href="/admin">⚙️ Settings</a>
+    </div>
+    <div class="main">
+        <h1>Spot Trading</h1>
+        <div class="trade-grid">
+            <div class="chart-area">📈 TradingView Chart<br><span style="font-size:12px;color:#666;">Connect to WebSocket for live data</span></div>
+            <div>
+                <div class="trade-panel">
+                    <h3>Place Order</h3>
+                    <div class="pair-selector">
+                        <button class="pair-btn active">BTC/USDT</button>
+                        <button class="pair-btn">ETH/USDT</button>
+                        <button class="pair-btn">SOL/USDT</button>
+                        <button class="pair-btn">BNB/USDT</button>
+                    </div>
+                    <div class="trade-tabs">
+                        <button class="trade-tab active" onclick="setType('buy')">Buy</button>
+                        <button class="trade-tab sell" onclick="setType('sell')">Sell</button>
+                    </div>
+                    <div class="form-group"><label>Amount <span>BTC</span></label><input type="number" id="amount" placeholder="0.00" step="0.0001"></div>
+                    <div class="form-group"><label>Price <span>USDT</span></label><input type="number" id="price" placeholder="Market price" step="0.01"></div>
+                    <div class="info-row"><span>Available</span><span id="available">0.00 BTC</span></div>
+                    <div class="info-row"><span>Total</span><span id="total">$0.00</span></div>
+                    <div class="result" id="result"></div>
+                    <button class="btn-trade btn-buy" id="tradeBtn" onclick="placeOrder()">Buy BTC</button>
+                </div>
+                <div class="orderbook">
+                    <h3>Order Book</h3>
+                    <div class="ob-row" style="color:#ff4757;"><span>Price (USDT)</span><span>Amount (BTC)</span></div>
+                    <div class="ob-row"><span class="ask">67,450</span><span>0.5234</span></div>
+                    <div class="ob-row"><span class="ask">67,445</span><span>1.2340</span></div>
+                    <div class="ob-row"><span class="ask">67,440</span><span>0.8900</span></div>
+                    <div class="ob-row" style="color:#fff;font-weight:700;padding:8px 0;"><span>67,432.00</span></div>
+                    <div class="ob-row"><span class="bid">67,420</span><span>0.3400</span></div>
+                    <div class="ob-row"><span class="bid">67,415</span><span>1.5600</span></div>
+                    <div class="ob-row"><span class="bid">67,410</span><span>0.7800</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let tradeType = 'buy';
+        let currentPair = 'BTC/USDT';
+
+        async function loadBalances() {
+            const res = await fetch('/api/me');
+            const user = await res.json();
+            if (user.error) { window.location.href = '/login'; return; }
+            document.getElementById('available').textContent = parseFloat(user.balance_btc).toFixed(8) + ' BTC';
+        }
+
+        function setType(type) {
+            tradeType = type;
+            document.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
+            if (type === 'buy') { document.querySelector('.trade-tab:first-child').classList.add('active'); document.getElementById('tradeBtn').className = 'btn-trade btn-buy'; document.getElementById('tradeBtn').textContent = 'Buy BTC'; }
+            else { document.querySelector('.trade-tab.sell').classList.add('active'); document.getElementById('tradeBtn').className = 'btn-trade btn-sell'; document.getElementById('tradeBtn').textContent = 'Sell BTC'; }
+        }
+
+        document.getElementById('amount').addEventListener('input', calcTotal);
+        document.getElementById('price').addEventListener('input', calcTotal);
+        function calcTotal() {
+            const a = parseFloat(document.getElementById('amount').value) || 0;
+            const p = parseFloat(document.getElementById('price').value) || 67432;
+            document.getElementById('total').textContent = '$' + (a * p).toLocaleString();
+        }
+
+        document.querySelectorAll('.pair-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.pair-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentPair = this.textContent;
+            });
+        });
+
+        async function placeOrder() {
+            const res = await fetch('/api/order', {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    pair: currentPair,
+                    type: tradeType,
+                    amount: document.getElementById('amount').value,
+                    price: document.getElementById('price').value || 67432
+                })
+            });
+            const d = await res.json();
+            const r = document.getElementById('result');
+            r.textContent = d.message || 'Order placed';
+            r.className = d.success ? 'result success' : 'result error';
+            if (d.success) loadBalances();
+        }
+
+        loadBalances();
+        calcTotal();
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Wallet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; color: #e0e0e0; display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; background: #111118; border-right: 1px solid #222; padding: 20px 0; position: fixed; left: 0; top: 0; height: 100vh; }
+        .sidebar-logo { padding: 0 20px 20px; font-size: 20px; font-weight: 700; color: #ff4757; border-bottom: 1px solid #222; margin-bottom: 15px; }
+        .sidebar a { display: block; padding: 12px 20px; color: #888; text-decoration: none; font-size: 14px; }
+        .sidebar a:hover, .sidebar a.active { color: #ff4757; background: rgba(255,71,87,0.1); border-right: 3px solid #ff4757; }
+        .main { margin-left: 220px; flex: 1; padding: 30px; }
+        h1 { color: #fff; margin-bottom: 25px; font-size: 24px; }
+        .balance-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+        .balance-card { background: linear-gradient(135deg, #111118, #1a1a2e); border: 1px solid #222; border-radius: 16px; padding: 25px; text-align: center; }
+        .balance-card h3 { color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .balance-card .amount { font-size: 32px; font-weight: 700; color: #ff4757; }
+        .balance-card .usd { color: #888; font-size: 13px; margin-top: 5px; }
+        .card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 25px; margin-bottom: 25px; }
+        .card h3 { color: #ff4757; margin-bottom: 18px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: #888; font-size: 13px; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; background: #0a0a0f; border: 2px solid #222; border-radius: 8px; color: #fff; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #ff4757; }
+        .btn { padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-primary { background: #ff4757; color: #fff; width: 100%; }
+        .btn-primary:hover { background: #ff3345; }
+        .btn-outline { background: transparent; color: #ff4757; border: 2px solid #ff4757; }
+        .address-box { background: #0a0a0f; padding: 15px; border-radius: 8px; color: #2ed573; font-family: monospace; font-size: 13px; word-break: break-all; margin-bottom: 15px; }
+        .result { padding: 10px; border-radius: 8px; margin-top: 10px; display: none; font-size: 13px; }
+        .result.success { background: rgba(46,213,115,0.15); color: #2ed573; display: block; }
+        .result.error { background: rgba(255,71,87,0.15); color: #ff4757; display: block; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-logo">💀 DeathMarket</div>
+        <a href="/dashboard">📊 Dashboard</a>
+        <a href="/trade">📈 Trade</a>
+        <a href="/wallet" class="active">💰 Wallet</a>
+        <a href="/market">📉 Market</a>
+        <a href="/profile">👤 Profile</a>
+        <a href="/admin">⚙️ Settings</a>
+    </div>
+    <div class="main">
+        <h1>My Wallet</h1>
+        <div class="balance-cards">
+            <div class="balance-card"><h3>Bitcoin</h3><div class="amount" id="btcBal">0.00</div><div class="usd">BTC</div></div>
+            <div class="balance-card"><h3>Ethereum</h3><div class="amount" id="ethBal">0.00</div><div class="usd">ETH</div></div>
+            <div class="balance-card"><h3>Tether USD</h3><div class="amount" id="usdtBal">$0.00</div><div class="usd">USDT</div></div>
+        </div>
+        <div class="card">
+            <h3>Deposit Address</h3>
+            <p style="color:#888;font-size:13px;margin-bottom:10px;">Send crypto to this address to deposit funds</p>
+            <div class="address-box" id="walletAddress">Loading...</div>
+            <button class="btn btn-outline" onclick="copyAddress()">📋 Copy Address</button>
+        </div>
+        <div class="card">
+            <h3>Withdraw Funds</h3>
+            <div id="withdrawResult" class="result"></div>
+            <div class="form-group"><label>Currency</label><select id="withdrawCurrency"><option value="btc">BTC - Bitcoin</option><option value="eth">ETH - Ethereum</option><option value="usdt">USDT - Tether</option></select></div>
+            <div class="form-group"><label>Amount</label><input type="number" id="withdrawAmount" placeholder="0.00" step="0.0001"></div>
+            <div class="form-group"><label>Destination Address</label><input type="text" id="withdrawAddress" placeholder="0x... or bc1..."></div>
+            <button onclick="withdraw()" class="btn btn-primary">Withdraw</button>
+        </div>
+    </div>
+    <script>
+        async function loadWallet() {
+            const res = await fetch('/api/me');
+            const user = await res.json();
+            if (user.error) { window.location.href = '/login'; return; }
+            document.getElementById('btcBal').textContent = parseFloat(user.balance_btc).toFixed(8);
+            document.getElementById('ethBal').textContent = parseFloat(user.balance_eth).toFixed(6);
+            document.getElementById('usdtBal').textContent = '$' + parseFloat(user.balance_usdt).toLocaleString();
+            document.getElementById('walletAddress').textContent = user.wallet_address || 'No address generated';
+        }
+        function copyAddress() { navigator.clipboard.writeText(document.getElementById('walletAddress').textContent); alert('Address copied!'); }
+        async function withdraw() {
+            const res = await fetch('/api/withdraw', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ currency: document.getElementById('withdrawCurrency').value, amount: document.getElementById('withdrawAmount').value, wallet_address: document.getElementById('withdrawAddress').value }) });
+            const d = await res.json();
+            const r = document.getElementById('withdrawResult');
+            r.textContent = d.message; r.className = d.success ? 'result success' : 'result error';
+            if (d.success) loadWallet();
+        }
+        loadWallet();
+    </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Live Market</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; color: #e0e0e0; }
+        .navbar { background: #111118; border-bottom: 1px solid #222; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 20px; font-weight: 700; color: #ff4757; text-decoration: none; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: #888; text-decoration: none; font-size: 14px; }
+        .nav-links a:hover { color: #ff4757; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 30px 20px; }
+        h1 { color: #fff; margin-bottom: 5px; font-size: 28px; }
+        .subtitle { color: #666; margin-bottom: 25px; font-size: 14px; }
+        .market-grid { display: grid; grid-template-columns: 1fr 350px; gap: 25px; }
+        .main-table { background: #111118; border: 1px solid #222; border-radius: 12px; overflow: hidden; }
+        .main-table table { width: 100%; border-collapse: collapse; }
+        .main-table th { background: #0a0a0f; color: #888; padding: 14px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
+        .main-table th:hover { color: #ff4757; }
+        .main-table td { padding: 14px 16px; border-bottom: 1px solid #1a1a1a; color: #ccc; font-size: 14px; }
+        .main-table tr { cursor: pointer; transition: background 0.15s; }
+        .main-table tr:hover td { background: rgba(255,71,87,0.05); }
+        .main-table tr.selected td { background: rgba(255,71,87,0.1); border-left: 3px solid #ff4757; }
+        .green { color: #2ed573; }
+        .red { color: #ff4757; }
+        .name-col { font-weight: 600; color: #fff; }
+        .pair-col { color: #666; font-size: 12px; }
+        .sidebar { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 20px; }
+        .sidebar h3 { color: #ff4757; margin-bottom: 15px; font-size: 16px; }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+        .detail-row .label { color: #888; }
+        .detail-row .value { color: #fff; font-weight: 600; }
+        .mini-chart { background: #0a0a0f; height: 120px; border-radius: 8px; margin: 15px 0; display: flex; align-items: center; justify-content: center; color: #444; font-size: 14px; }
+        .btn-trade { display: block; background: #ff4757; color: #fff; text-align: center; padding: 12px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 15px; }
+        .btn-trade:hover { background: #ff3345; }
+        .tabs { display: flex; gap: 0; margin-bottom: 0; }
+        .tab { padding: 10px 20px; background: transparent; border: none; color: #888; cursor: pointer; font-size: 13px; font-weight: 600; border-bottom: 2px solid transparent; }
+        .tab.active { color: #ff4757; border-bottom: 2px solid #ff4757; }
+        @media (max-width: 900px) { .market-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">💀 DeathMarket</a>
+        <div class="nav-links">
+            <a href="/">Home</a><a href="/trade">Trade</a><a href="/wallet">Wallet</a><a href="/learn">Learn</a>
+            <a href="/login">Sign In</a><a href="/register" style="color:#ff4757;">Register</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Live Market</h1>
+        <p class="subtitle">Real-time cryptocurrency prices and market data</p>
+        <div class="market-grid">
+            <div class="main-table">
+                <div class="tabs">
+                    <button class="tab active" onclick="filterMarket('all')">All</button>
+                    <button class="tab" onclick="filterMarket('gainers')">📈 Top Gainers</button>
+                    <button class="tab" onclick="filterMarket('losers')">📉 Top Losers</button>
+                    <button class="tab" onclick="filterMarket('volume')">🔥 Highest Volume</button>
+                </div>
+                <table>
+                    <thead><tr><th>#</th><th>Name</th><th>Price</th><th>24h Change</th><th>24h Volume</th><th>Market Cap</th><th>Chart (7d)</th></tr></thead>
+                    <tbody id="marketBody"></tbody>
+                </table>
+            </div>
+            <div class="sidebar" id="coinDetail">
+                <h3>Select a Coin</h3>
+                <p style="color:#666;font-size:13px;">Click on any coin in the table to see details</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        const marketData = [
+            { id:1, name:'Bitcoin', symbol:'BTC', price:67432, change:2.4, volume:1250000000, mcap:1320000000000, chart:'📈' },
+            { id:2, name:'Ethereum', symbol:'ETH', price:3521, change:1.8, volume:890000000, mcap:423000000000, chart:'📈' },
+            { id:3, name:'Solana', symbol:'SOL', price:142, change:5.2, volume:340000000, mcap:62000000000, chart:'📈' },
+            { id:4, name:'Binance Coin', symbol:'BNB', price:312, change:-0.6, volume:210000000, mcap:48000000000, chart:'📉' },
+            { id:5, name:'Ripple', symbol:'XRP', price:0.89, change:3.1, volume:180000000, mcap:48000000000, chart:'📈' },
+            { id:6, name:'Cardano', symbol:'ADA', price:0.62, change:1.2, volume:95000000, mcap:22000000000, chart:'📈' },
+            { id:7, name:'Avalanche', symbol:'AVAX', price:35.80, change:-2.1, volume:78000000, mcap:13000000000, chart:'📉' },
+            { id:8, name:'Polkadot', symbol:'DOT', price:7.45, change:0.8, volume:65000000, mcap:10500000000, chart:'📈' },
+            { id:9, name:'Chainlink', symbol:'LINK', price:15.20, change:4.5, volume:55000000, mcap:8900000000, chart:'📈' },
+            { id:10, name:'Uniswap', symbol:'UNI', price:7.80, change:-1.5, volume:42000000, mcap:5900000000, chart:'📉' },
+            { id:11, name:'Litecoin', symbol:'LTC', price:72.50, change:0.3, volume:38000000, mcap:5400000000, chart:'📈' },
+            { id:12, name:'Polygon', symbol:'MATIC', price:0.85, change:-3.2, volume:35000000, mcap:7900000000, chart:'📉' },
+        ];
+
+        function formatUSD(n) { return '$' + n.toLocaleString(); }
+        function formatCompact(n) { return n >= 1e9 ? '$' + (n/1e9).toFixed(1) + 'B' : n >= 1e6 ? '$' + (n/1e6).toFixed(1) + 'M' : '$' + (n/1e3).toFixed(1) + 'K'; }
+
+        function renderMarket(data) {
+            document.getElementById('marketBody').innerHTML = data.map((c,i) => `
+                <tr onclick="showDetail(${c.id})" id="row${c.id}">
+                    <td style="color:#666;">${i+1}</td>
+                    <td><span class="name-col">${c.name}</span> <span class="pair-col">${c.symbol}/USDT</span></td>
+                    <td style="font-weight:600;">${formatUSD(c.price)}</td>
+                    <td class="${c.change >= 0 ? 'green' : 'red'}">${c.change >= 0 ? '+' : ''}${c.change}%</td>
+                    <td>${formatCompact(c.volume)}</td>
+                    <td>${formatCompact(c.mcap)}</td>
+                    <td>${c.chart}</td>
+                </tr>
+            `).join('');
+        }
+
+        function showDetail(id) {
+            document.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+            document.getElementById('row'+id)?.classList.add('selected');
+            const c = marketData.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('coinDetail').innerHTML = `
+                <h3>${c.name} (${c.symbol})</h3>
+                <div class="mini-chart">${c.chart} 7-Day Chart</div>
+                <div class="detail-row"><span class="label">Price</span><span class="value">${formatUSD(c.price)}</span></div>
+                <div class="detail-row"><span class="label">24h Change</span><span class="value ${c.change>=0?'green':'red'}">${c.change>=0?'+':''}${c.change}%</span></div>
+                <div class="detail-row"><span class="label">24h Volume</span><span class="value">${formatCompact(c.volume)}</span></div>
+                <div class="detail-row"><span class="label">Market Cap</span><span class="value">${formatCompact(c.mcap)}</span></div>
+                <div class="detail-row"><span class="label">24h High</span><span class="value">${formatUSD(c.price * 1.03)}</span></div>
+                <div class="detail-row"><span class="label">24h Low</span><span class="value">${formatUSD(c.price * 0.97)}</span></div>
+                <a href="/trade?pair=${c.symbol}" class="btn-trade">Trade ${c.symbol}/USDT</a>
+            `;
+        }
+
+        function filterMarket(type) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            let sorted = [...marketData];
+            if (type === 'gainers') sorted.sort((a,b) => b.change - a.change);
+            if (type === 'losers') sorted.sort((a,b) => a.change - b.change);
+            if (type === 'volume') sorted.sort((a,b) => b.volume - a.volume);
+            renderMarket(sorted);
+        }
+
+        renderMarket(marketData);
+    </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Sign In</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .login-box { background: #111118; border: 1px solid #222; border-radius: 16px; padding: 45px; width: 420px; }
+        .logo { text-align: center; margin-bottom: 10px; font-size: 28px; font-weight: 700; color: #ff4757; }
+        .logo span { color: #ff6b81; }
+        .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 6px; color: #888; font-size: 13px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 14px; background: #0a0a0f; border: 2px solid #222; border-radius: 8px; color: #fff; font-size: 15px; }
+        .form-group input:focus { outline: none; border-color: #ff4757; }
+        .btn-login { width: 100%; padding: 14px; background: #ff4757; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn-login:hover { background: #ff3345; }
+        .error { background: rgba(255,71,87,0.15); border: 1px solid #ff4757; color: #ff4757; padding: 12px; border-radius: 8px; margin-bottom: 18px; display: none; font-size: 13px; }
+        .links { text-align: center; margin-top: 20px; }
+        .links a { color: #ff4757; text-decoration: none; font-size: 14px; }
+        .links span { color: #444; margin: 0 10px; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="logo">💀 Death<span>Market</span></div>
+        <p class="subtitle">Sign in to your account</p>
+        <div id="error" class="error"></div>
+        <form id="loginForm">
+            <div class="form-group"><label>Username</label><input type="text" id="username" placeholder="Enter username" autocomplete="off"></div>
+            <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter password"></div>
+            <button type="submit" class="btn-login">Sign In</button>
+        </form>
+        <div class="links">
+            <a href="/register">Create Account</a><span>|</span><a href="/support">Help</a><span>|</span><a href="/">Home</a>
+        </div>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            let res;
+            if (username.startsWith('{')) {
+                res = await fetch('/api/nosql-login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username}) });
+            } else {
+                res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, password}) });
+            }
+            const data = await res.json();
+            if (data.success) { window.location.href = '/dashboard'; }
+            else { document.getElementById('error').innerHTML = data.message; document.getElementById('error').style.display = 'block'; }
+        });
+    </script>
+</body>
+</html>

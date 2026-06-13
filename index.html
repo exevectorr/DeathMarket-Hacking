@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Crypto Trading Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; color: #e0e0e0; }
+        .navbar { background: #111118; border-bottom: 1px solid #222; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 24px; font-weight: 700; color: #ff4757; text-decoration: none; }
+        .nav-brand span { color: #ff6b81; }
+        .nav-links { display: flex; gap: 25px; align-items: center; }
+        .nav-links a { color: #888; text-decoration: none; font-weight: 500; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover { color: #ff4757; }
+        .btn-login { background: #ff4757; color: #fff !important; padding: 10px 24px; border-radius: 6px; font-weight: 600 !important; }
+        .btn-register { background: transparent; color: #ff4757 !important; padding: 10px 24px; border-radius: 6px; border: 2px solid #ff4757; font-weight: 600 !important; }
+        .hero { background: linear-gradient(135deg, #111118 0%, #1a1a2e 50%, #111118 100%); padding: 100px 20px; text-align: center; }
+        .hero h1 { font-size: 52px; font-weight: 700; color: #fff; margin-bottom: 15px; }
+        .hero h1 span { color: #ff4757; }
+        .hero p { font-size: 18px; color: #888; max-width: 600px; margin: 0 auto 30px; }
+        .hero-buttons { display: flex; gap: 15px; justify-content: center; }
+        .btn-primary { background: #ff4757; color: #fff; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; }
+        .btn-outline { background: transparent; color: #ff4757; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; border: 2px solid #ff4757; }
+        .ticker { background: #111118; border-top: 1px solid #222; border-bottom: 1px solid #222; padding: 12px 50px; display: flex; gap: 40px; overflow: hidden; }
+        .ticker-item { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+        .ticker-item .name { color: #fff; font-weight: 600; }
+        .ticker-item .price { color: #ff4757; }
+        .ticker-item .change { color: #2ed573; font-size: 12px; }
+        .section { max-width: 1100px; margin: 60px auto; padding: 0 20px; }
+        .section h2 { text-align: center; font-size: 30px; color: #fff; margin-bottom: 40px; }
+        .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .feature-card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 30px; }
+        .feature-card .icon { font-size: 36px; margin-bottom: 20px; }
+        .feature-card h3 { color: #ff4757; margin-bottom: 10px; }
+        .feature-card p { color: #888; font-size: 14px; line-height: 1.6; }
+        .footer { background: #111118; border-top: 1px solid #222; text-align: center; padding: 30px; color: #666; font-size: 13px; margin-top: 60px; }
+        @media (max-width: 768px) { .features { grid-template-columns: 1fr; } .hero h1 { font-size: 32px; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">💀 Death<span>Market</span></a>
+        <div class="nav-links">
+            <a href="/market">Market</a>
+            <a href="/trade">Trade</a>
+            <a href="/learn">Learn</a>
+            <a href="/support">Support</a>
+            <a href="/login" class="btn-login">Sign In</a>
+            <a href="/register" class="btn-register">Register</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1>Trade Crypto Like a <span>Pro</span></h1>
+        <p>The most advanced cryptocurrency trading platform. Zero fees, instant execution, maximum security.</p>
+        <div class="hero-buttons">
+            <a href="/register" class="btn-primary">Get Started</a>
+            <a href="/market" class="btn-outline">View Market</a>
+        </div>
+    </section>
+
+    <div class="ticker">
+        <div class="ticker-item"><span class="name">BTC/USD</span><span class="price">$67,432</span><span class="change">+2.4%</span></div>
+        <div class="ticker-item"><span class="name">ETH/USD</span><span class="price">$3,521</span><span class="change">+1.8%</span></div>
+        <div class="ticker-item"><span class="name">SOL/USD</span><span class="price">$142</span><span class="change">+5.2%</span></div>
+        <div class="ticker-item"><span class="name">BNB/USD</span><span class="price">$312</span><span class="change">-0.6%</span></div>
+        <div class="ticker-item"><span class="name">XRP/USD</span><span class="price">$0.89</span><span class="change">+3.1%</span></div>
+    </div>
+
+    <div class="section">
+        <h2>Why Trade on DeathMarket</h2>
+        <div class="features">
+            <div class="feature-card"><div class="icon">⚡</div><h3>Zero Trading Fees</h3><p>Trade as much as you want with absolutely zero fees on all pairs.</p></div>
+            <div class="feature-card"><div class="icon">🔒</div><h3>Military-Grade Security</h3><p>Your assets protected by multi-layer encryption and cold storage.</p></div>
+            <div class="feature-card"><div class="icon">📊</div><h3>Advanced Charts</h3><p>Professional-grade charting tools with 100+ indicators.</p></div>
+            <div class="feature-card"><div class="icon">💎</div><h3>Staking Rewards</h3><p>Earn up to 25% APY by staking your crypto assets.</p></div>
+            <div class="feature-card"><div class="icon">🌍</div><h3>Global Access</h3><p>Trade from anywhere in the world, 24/7, 365 days a year.</p></div>
+            <div class="feature-card"><div class="icon">🤖</div><h3>Automated Trading</h3><p>Powerful API for algorithmic and bot trading strategies.</p></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2026 DeathMarket. All rights reserved. Trading involves risk.</p>
+    </div>
+</body>
+</html>

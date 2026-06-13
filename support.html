@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeathMarket - Support</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0f; color: #e0e0e0; }
+        .navbar { background: #111118; border-bottom: 1px solid #222; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-brand { font-size: 20px; font-weight: 700; color: #ff4757; text-decoration: none; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: #888; text-decoration: none; font-size: 14px; }
+        .nav-links a:hover { color: #ff4757; }
+        .btn-login { background: #ff4757; color: #fff !important; padding: 8px 20px; border-radius: 6px; font-weight: 600; }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        h1 { color: #fff; font-size: 32px; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 40px; }
+        .card { background: #111118; border: 1px solid #222; border-radius: 12px; padding: 30px; margin-bottom: 25px; }
+        .card h3 { color: #ff4757; font-size: 18px; margin-bottom: 18px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; color: #888; margin-bottom: 6px; font-size: 13px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; background: #0a0a0f; border: 2px solid #222; border-radius: 8px; color: #fff; font-size: 14px; }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #ff4757; }
+        .btn { padding: 12px 28px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+        .btn-primary { background: #ff4757; color: #fff; width: 100%; }
+        .btn-primary:hover { background: #ff3345; }
+        .ticket { background: #0a0a0f; border-left: 3px solid #ff4757; padding: 15px; margin-bottom: 10px; border-radius: 0 8px 8px 0; }
+        .ticket .subject { color: #ff4757; font-weight: 600; }
+        .ticket .msg { color: #888; margin-top: 5px; font-size: 13px; }
+        .ticket .status { color: #2ed573; font-size: 11px; margin-top: 5px; }
+        pre { background: #0a0a0f; padding: 15px; border-radius: 8px; color: #2ed573; font-size: 12px; margin-top: 15px; overflow-x: auto; }
+        .footer { background: #111118; border-top: 1px solid #222; text-align: center; padding: 30px; color: #666; font-size: 13px; margin-top: 60px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">💀 DeathMarket</a>
+        <div class="nav-links">
+            <a href="/">Home</a><a href="/market">Market</a><a href="/trade">Trade</a><a href="/learn">Learn</a>
+            <a href="/login" class="btn-login">Sign In</a>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Help & Support</h1>
+        <p class="subtitle">We're here to help you with any issues</p>
+        <div class="card">
+            <h3>Submit a Support Ticket</h3>
+            <div class="form-group"><label>Subject</label><input type="text" id="subject" placeholder="What's the issue?"></div>
+            <div class="form-group"><label>Message</label><textarea id="message" placeholder="Describe your issue in detail..."></textarea></div>
+            <button onclick="submitTicket()" class="btn btn-primary">Submit Ticket</button>
+        </div>
+        <div class="card">
+            <h3>Recent Tickets</h3>
+            <div id="tickets"></div>
+        </div>
+        <div class="card">
+            <h3>Password Recovery</h3>
+            <p style="color:#888;font-size:13px;margin-bottom:15px;">Enter your username and email to recover your password.</p>
+            <div class="form-group"><label>Username</label><input type="text" id="resetUser"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="resetEmail"></div>
+            <button onclick="resetPassword()" class="btn btn-primary">Recover Password</button>
+            <div id="resetResult" style="margin-top:12px;"></div>
+        </div>
+        <div class="card">
+            <h3>Network Diagnostics</h3>
+            <p style="color:#888;font-size:13px;margin-bottom:15px;">Test connectivity to our servers.</p>
+            <div class="form-group"><label>Host</label><input type="text" id="pingHost" value="8.8.8.8"></div>
+            <button onclick="doPing()" class="btn btn-primary">Run Test</button>
+            <pre id="pingOutput"></pre>
+        </div>
+        <div class="card">
+            <h3>Download Resources</h3>
+            <p style="color:#888;font-size:13px;margin-bottom:15px;">Download files from our server.</p>
+            <div class="form-group"><label>File Name</label><input type="text" id="fileName" value="welcome.txt"></div>
+            <button onclick="readFile()" class="btn btn-primary">Download</button>
+            <pre id="fileContent"></pre>
+        </div>
+    </div>
+    <div class="footer"><p>&copy; 2026 DeathMarket. All rights reserved.</p></div>
+    <script>
+        async function submitTicket() {
+            const res = await fetch('/api/support', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ subject: document.getElementById('subject').value, message: document.getElementById('message').value }) });
+            const d = await res.json();
+            if (d.success) { loadTickets(); document.getElementById('subject').value = ''; document.getElementById('message').value = ''; }
+        }
+        async function loadTickets() {
+            const r = await fetch('/api/support-tickets');
+            const tickets = await r.json();
+            document.getElementById('tickets').innerHTML = tickets.map(t => `<div class="ticket"><div class="subject">${t.subject}</div><div class="msg">${t.message}</div><div class="status">Status: ${t.status}</div></div>`).join('');
+        }
+        async function resetPassword() {
+            const r = await fetch('/api/reset-password', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username: document.getElementById('resetUser').value, email: document.getElementById('resetEmail').value }) });
+            const d = await r.json();
+            document.getElementById('resetResult').innerHTML = d.success ? `Password: <strong style="color:#ff4757;">${d.password}</strong>` : d.message;
+        }
+        async function doPing() {
+            const r = await fetch('/api/ping', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ host: document.getElementById('pingHost').value }) });
+            document.getElementById('pingOutput').textContent = (await r.json()).output || 'No output';
+        }
+        async function readFile() {
+            const r = await fetch('/api/file?name='+encodeURIComponent(document.getElementById('fileName').value));
+            document.getElementById('fileContent').textContent = await r.text();
+        }
+        loadTickets();
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# 💀 DeathMarket - Vulnerable Cryptocurrency Trading Platform
+#  DeathMarket - Vulnerable Cryptocurrency Trading Platform
 
 DeathMarket is an intentionally vulnerable cryptocurrency exchange and trading platform designed for security testing, penetration testing practice, and educational purposes.
 

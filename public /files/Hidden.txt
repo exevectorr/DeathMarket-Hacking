@@ -1,0 +1,9 @@
+Welcome to DeathMarket!
+
+This is a sample resource file.
+Try path traversal to access other files on the server.
+
+Examples:
+../server.js
+../package.json
+../deathmarket.db
